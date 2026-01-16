@@ -38,12 +38,12 @@ class CartCtrl {
 
         SessionUtils::storeObject('cart', $cart);
 
-        // 4. Przekierowanie przez router
-        App::getRouter()->redirectTo("cartView");
+        // 4. Przekierowanie z powrotem do listy produktów
+        App::getRouter()->redirectTo("productList");  // ← ZMIENIONE
     }
 
     public function action_orderSave() {
-        $adres = ParamUtils::getFromRequest('adres');
+        $adres = ParamUtils:: getFromRequest('adres');
         $cart = SessionUtils::loadObject('cart', true);
         
         // Pobieramy usera z sesji Amelii
@@ -56,7 +56,7 @@ class CartCtrl {
         }
 
         if (empty($cart)) {
-            Utils::addErrorMessage("Twój koszyk jest pusty!");
+            Utils:: addErrorMessage("Twój koszyk jest pusty!");
             App::getRouter()->redirectTo("productList");
         }
 
@@ -87,18 +87,18 @@ class CartCtrl {
             $orderId = App::getDB()->id();
 
             foreach ($products as $p) {
-                App::getDB()->insert("ORDER_ITEMS", [
-                    "ORDERS_ORDERS_ID" => $orderId,
-                    "PRODUCTS_id_product" => $p['id_product'],
-                    "ilosc" => $cart[$p['id_product']],
-                    "cena_zakupu" => $p['cena']
-                ]);
-            }
+    App::getDB()->insert("ORDER_ITEMS", [
+        "ORDERS_ORDERS_ID" => $orderId,
+        "PRODUCTS_id_product" => $p['id_product'],  // ← Zmień ] na ,
+        "ilosc" => $cart[$p['id_product']],
+        "cena_zakupu" => $p['cena']
+    ]);
+}
 
             // Czyścimy koszyk
             SessionUtils::remove('cart');
             
-            Utils::addInfoMessage("Dziękujemy! Zamówienie nr $orderId zostało złożone.");
+            Utils::addInfoMessage("Dziękujemy!  Zamówienie nr $orderId zostało złożone.");
             App::getRouter()->redirectTo("orderHistory");
 
         } catch (\Exception $e) {
@@ -113,7 +113,7 @@ class CartCtrl {
         $products = [];
         $total = 0;
 
-        if (!empty($cart)) {
+        if (! empty($cart)) {
             $ids = array_keys($cart);
             $products = App::getDB()->select("PRODUCTS", "*", ["id_product" => $ids]);
 

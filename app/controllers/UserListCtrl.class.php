@@ -2,6 +2,7 @@
 namespace app\controllers;
 
 use core\App;
+use core\Utils;        // ← DODAJ TO
 use core\ParamUtils;
 
 class UserListCtrl {
@@ -19,7 +20,6 @@ class UserListCtrl {
         ]);
 
         App::getSmarty()->assign('users', $users);
-        App::getSmarty()->assign('msgs', App::getMessages());
         App::getSmarty()->display('UserList.tpl');
     }
 
@@ -35,7 +35,7 @@ class UserListCtrl {
             ]);
             
             $msg = ($active == 1) ? "Użytkownik został odblokowany." : "Użytkownik został zablokowany.";
-            App::getMessages()->addInfo($msg);
+            Utils::addInfoMessage($msg);  // ← ZMIENIONE
         }
 
         App::getRouter()->redirectTo("userList");
@@ -60,9 +60,9 @@ class UserListCtrl {
                     "USERS_id_user" => $id,
                     "ROLES_id_role" => $roleData
                 ]);
-                App::getMessages()->addInfo("Zmieniono rolę na: " . $newRole);
+                Utils:: addInfoMessage("Zmieniono rolę na: " . $newRole);  // ← ZMIENIONE
             } else {
-                App::getMessages()->addError("Rola nie istnieje!");
+                Utils::addErrorMessage("Rola nie istnieje!");  // ← ZMIENIONE
             }
         }
 

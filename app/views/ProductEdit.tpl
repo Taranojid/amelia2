@@ -5,7 +5,6 @@
     
     <h2>{if isset($form->id_product) && $form->id_product > 0}Edycja{else}Dodawanie{/if} mydła</h2>
 
-    {* Standaryzowane komunikaty frameworka Amelia *}
     {include file='messages.tpl'}
 
     <form action="{$conf->action_url}productSave" method="post" class="pure-form pure-form-stacked">
@@ -13,21 +12,25 @@
 
         <fieldset>
             <label for="nazwa_produktu">Nazwa mydła:</label>
-            <input id="nazwa_produktu" type="text" name="nazwa_produktu" value="{$form->nazwa_produktu|default:''}" class="pure-input-1">
+            <input id="nazwa_produktu" type="text" name="nazwa_produktu" 
+                   value="{$form->nazwa_produktu|default:''}" 
+                   class="pure-input-1" required>
 
             <label for="id_kategorii">Kategoria:</label>
-            <select id="id_kategorii" name="id_kategorii" class="pure-input-1">
+            <select id="id_kategorii" name="id_kategorii" class="pure-input-1" required>
                 <option value="">-- Wybierz kategorię --</option>
                 {foreach $categories as $cat}
                     <option value="{$cat['id_category']}" 
-                    {if (isset($form->id_kategorii) && $form->id_kategorii == $cat['id_category'])}selected{/if}>
-                        {$cat['nazwa_kategorii']|default:$cat['nazwa_kategori']}
+                    {if (isset($form->CATEGORIES_id_category) && $form->CATEGORIES_id_category == $cat['id_category'])}selected{/if}>
+                        {$cat['nazwa_kategori']}
                     </option>
                 {/foreach}
             </select>
 
             <label for="cena">Cena (zł):</label>
-            <input id="cena" type="number" step="0.01" name="cena" value="{$form->cena|default:''}" class="pure-input-1">
+            <input id="cena" type="number" step="0.01" name="cena" 
+                   value="{$form->cena|default:''}" 
+                   class="pure-input-1" required>
 
             <label for="opis">Opis produktu:</label>
             <textarea id="opis" name="opis" class="pure-input-1" rows="5">{$form->opis|default:''}</textarea>

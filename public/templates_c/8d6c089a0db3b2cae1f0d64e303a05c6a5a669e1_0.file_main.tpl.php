@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 5.4.5, created on 2026-01-16 10:18:08
+/* Smarty version 5.4.5, created on 2026-01-16 23:17:03
   from 'file:main.tpl' */
 
 /* @var \Smarty\Template $_smarty_tpl */
 if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   'version' => '5.4.5',
-  'unifunc' => 'content_696a02508fd3c7_85674191',
+  'unifunc' => 'content_696ab8df167d84_81926163',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '8d6c089a0db3b2cae1f0d64e303a05c6a5a669e1' => 
     array (
       0 => 'main.tpl',
-      1 => 1768475852,
+      1 => 1768601819,
       2 => 'file',
     ),
   ),
@@ -20,10 +20,12 @@ if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   array (
   ),
 ))) {
-function content_696a02508fd3c7_85674191 (\Smarty\Template $_smarty_tpl) {
+function content_696ab8df167d84_81926163 (\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';
 $_smarty_tpl->getInheritance()->init($_smarty_tpl, false);
+$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_2036210101696ab8df15ec38_17958182', "content");
 ?>
+
 <!doctype html>
 <!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
 <!--[if lt IE 7 ]> <html class="ie6"> <![endif]-->
@@ -113,7 +115,7 @@ $_smarty_tpl->getInheritance()->init($_smarty_tpl, false);
 	<div id="Content" class="container">
 
 <?php 
-$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_631408193696a02508fbf43_86387378', 'content');
+$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_1451762180696ab8df166944_91793295', 'content');
 ?>
 
 	</div>
@@ -123,7 +125,7 @@ $_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_631408193696a
 	<!-- FOOTER -->
 
 <?php 
-$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_1396488104696a02508fc947_54337008', 'footer');
+$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_2099181314696ab8df167384_67802046', 'footer');
 ?>
 
 
@@ -141,8 +143,16 @@ $_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_1396488104696
 
 </body>
 </html><?php }
+/* {block "content"} */
+class Block_2036210101696ab8df15ec38_17958182 extends \Smarty\Runtime\Block
+{
+public function callBlock(\Smarty\Template $_smarty_tpl) {
+$_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';
+}
+}
+/* {/block "content"} */
 /* {block 'content'} */
-class Block_631408193696a02508fbf43_86387378 extends \Smarty\Runtime\Block
+class Block_1451762180696ab8df166944_91793295 extends \Smarty\Runtime\Block
 {
 public function callBlock(\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';
@@ -171,7 +181,7 @@ $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';
 }
 /* {/block 'content'} */
 /* {block 'footer'} */
-class Block_1396488104696a02508fc947_54337008 extends \Smarty\Runtime\Block
+class Block_2099181314696ab8df167384_67802046 extends \Smarty\Runtime\Block
 {
 public function callBlock(\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';

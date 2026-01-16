@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 5.4.5, created on 2026-01-16 10:20:00
+/* Smarty version 5.4.5, created on 2026-01-16 22:46:31
   from 'file:MainPage.tpl' */
 
 /* @var \Smarty\Template $_smarty_tpl */
 if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   'version' => '5.4.5',
-  'unifunc' => 'content_696a02c063eb03_91251632',
+  'unifunc' => 'content_696ab1b71c0329_92138542',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,18 +20,18 @@ if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   array (
   ),
 ))) {
-function content_696a02c063eb03_91251632 (\Smarty\Template $_smarty_tpl) {
+function content_696ab1b71c0329_92138542 (\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views';
 $_smarty_tpl->getInheritance()->init($_smarty_tpl, true);
 ?>
 
 
 <?php 
-$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_1737041894696a02c06365c8_95888282', "content");
+$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_91265743696ab1b71b8460_83556735', "content");
 $_smarty_tpl->getInheritance()->endChild($_smarty_tpl, "main.tpl", $_smarty_current_dir);
 }
 /* {block "content"} */
-class Block_1737041894696a02c06365c8_95888282 extends \Smarty\Runtime\Block
+class Block_91265743696ab1b71b8460_83556735 extends \Smarty\Runtime\Block
 {
 public function callBlock(\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views';

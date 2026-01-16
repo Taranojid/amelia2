@@ -45,7 +45,7 @@ class LoginCtrl {
                 $roles_list = array_column($user_roles, 'rola_nazwa');
                 
                 // Tworzymy obiekt użytkownika
-                $user = new User($user_data['login'], $roles_list[0] ??  'user');
+                $user = new User($user_data['login'], $roles_list[0] ?? 'user');
 
                 // Zapisujemy w sesji Amelii
                 SessionUtils::storeObject('user', $user);
