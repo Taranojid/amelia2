@@ -1,37 +1,31 @@
 {extends file="main.tpl"}
 
 {block name="content"}
-<div style="background: url('{$conf->app_url}/assets/soap-bg.jpg'); background-size: cover; padding: 100px 20px; text-align: center; color: white;">
-    <h1 style="font-size: 3em; text-shadow: 2px 2px 4px #000;">Naturalne Mydła Jana</h1>
-    <p style="font-size: 1.5em;">Ręcznie robione, ekologiczne, prosto z natury.</p>
-    <a href="{$conf->action_url}productList" class="pure-button pure-button-primary" style="padding: 15px 30px; font-size: 1.2em;">Sprawdź nasze produkty</a>
+{* 1. Hero Section - Poprawiony czerwony przycisk *}
+<div style="background: linear-gradient(rgba(204, 28, 28, 0.5), rgba(230, 0, 0, 0.5)), url('{$conf->app_url}/assets/soap-bg.jpg'); background-size: cover; background-position: center; padding: 120px 20px; text-align: center; color: white;">
+    
+    {* PRZYCISK: Zmieniony na czerwony z hoverem *}
+    <a href="{$conf->action_url}productList" 
+       style="display: inline-block; background: #c0392b; color: white; padding: 18px 40px; font-size: 1.2em; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+       Sprawdź nasze produkty
+    </a>
 </div>
 
-<div style="display: flex; justify-content: space-around; padding: 50px 10%; background: #f9f9f9; text-align: center;">
-    <div>
-        <h3>🌿 100% Eko</h3>
-        <p>Tylko naturalne składniki.</p>
+{* 2. Sekcja Atutów - Lepsze odstępy *}
+<div style="display: flex; justify-content: space-around; padding: 60px 10%; background: #ffffff; text-align: center; border-bottom: 1px solid #eee;">
+    <div style="max-width: 250px;">
+        <h3 style="color: #2c3e50;">🌿 100% Eko</h3>
+        <p style="color: #7f8c8d;">Tylko naturalne, certyfikowane składniki roślinne.</p>
     </div>
-    <div>
-        <h3>🧼 Ręczna robota</h3>
-        <p>Każda kostka jest unikalna.</p>
+    <div style="max-width: 250px;">
+        <h3 style="color: #2c3e50;">🧼 Ręczna robota</h3>
+        <p style="color: #7f8c8d;">Każda kostka jest unikalna i tworzona z pasją.</p>
     </div>
-    <div>
-        <h3>🚚 Szybka dostawa</h3>
-        <p>Mydło u Ciebie w 48h.</p>
+    <div style="max-width: 250px;">
+        <h3 style="color: #2c3e50;">🚚 Szybka dostawa</h3>
+        <p style="color: #7f8c8d;">Twoje zamówienie wyślemy w ciągu 48h.</p>
     </div>
 </div>
 
-<div style="padding: 50px 10%;">
-    <h2 style="text-align: center;">Nasze Bestsellery</h2>
-    <div style="display: flex; gap: 20px; justify-content: center;">
-        {foreach $promoted as $p}
-            <div style="border: 1px solid #ddd; padding: 15px; width: 250px; text-align: center;">
-                <h4>{$p['nazwa_produktu']}</h4>
-                <p>{$p['cena']} zł</p>
-                <a href="{$conf->action_url}productList" style="color: #3498db;">Zobacz więcej</a>
-            </div>
-        {/foreach}
-    </div>
-</div>
+
 {/block}

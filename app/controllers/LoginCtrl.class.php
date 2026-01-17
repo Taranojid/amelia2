@@ -38,6 +38,12 @@ class LoginCtrl {
 
             if ($user_data && $this->form->pass == $user_data['password']) {
                 
+                // ✅ SPRAWDZENIE CZY KONTO JEST AKTYWNE
+                if (isset($user_data['czy_aktywny']) && $user_data['czy_aktywny'] != 1) {
+                    App::getMessages()->addMessage(new Message('Twoje konto zostało zablokowane.  Skontaktuj się z administratorem.', Message::ERROR));
+                    return false;
+                }
+                
                 $user_roles = App::getDB()->select("USER_ROLES", [
                     "[>]ROLES" => ["ROLES_id_role" => "id_role"]
                 ], ["ROLES.rola_nazwa"], ["USERS_id_user" => $user_data['id_user']]);
@@ -58,7 +64,7 @@ class LoginCtrl {
                 App::getMessages()->addMessage(new Message('Zalogowano pomyślnie', Message::INFO));
                 return true;
             } else {
-                App::getMessages()->addMessage(new Message('Niepoprawny login lub hasło', Message::ERROR));
+                App::getMessages()->addMessage(new Message('Niepoprawny login lub hasło', Message:: ERROR));
             }
         }
         return ! App::getMessages()->isError();
@@ -72,7 +78,7 @@ class LoginCtrl {
             session_regenerate_id(true);
             
             // Przekieruj do listy produktów
-            App::getRouter()->redirectTo("productList");
+            App:: getRouter()->redirectTo("productList");
             exit(); // Zatrzymaj dalsze wykonywanie
         } else {
             // Pokaż formularz logowania z błędami
@@ -95,7 +101,7 @@ class LoginCtrl {
         // Uruchom nową sesję dla komunikatu
         session_start();
         
-        App::getMessages()->addMessage(new Message('Poprawnie wylogowano', Message::INFO));
+        App::getMessages()->addMessage(new Message('Poprawnie wylogowano', Message:: INFO));
         App::getRouter()->redirectTo("mainPage");
         exit(); // Zatrzymaj dalsze wykonywanie
     }

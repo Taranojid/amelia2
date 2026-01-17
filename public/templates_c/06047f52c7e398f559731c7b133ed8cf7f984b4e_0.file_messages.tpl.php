@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 5.4.5, created on 2026-01-16 22:46:29
+/* Smarty version 5.4.5, created on 2026-01-17 00:38:19
   from 'file:messages.tpl' */
 
 /* @var \Smarty\Template $_smarty_tpl */
 if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   'version' => '5.4.5',
-  'unifunc' => 'content_696ab1b5a1b4f8_13523237',
+  'unifunc' => 'content_696acbebaf4d73_43371830',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,16 +20,16 @@ if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   array (
   ),
 ))) {
-function content_696ab1b5a1b4f8_13523237 (\Smarty\Template $_smarty_tpl) {
+function content_696acbebaf4d73_43371830 (\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views\\templates';
 if ($_smarty_tpl->getValue('msgs')->isMessage()) {?>
 <div class="messages bottom-margin">
 	<ul>
 	<?php
 $_from = $_smarty_tpl->getSmarty()->getRuntime('Foreach')->init($_smarty_tpl, $_smarty_tpl->getValue('msgs')->getMessages(), 'msg');
-$foreach1DoElse = true;
+$foreach2DoElse = true;
 foreach ($_from ?? [] as $_smarty_tpl->getVariable('msg')->value) {
-$foreach1DoElse = false;
+$foreach2DoElse = false;
 ?>
 	<li class="msg <?php if ($_smarty_tpl->getValue('msg')->type == 2) {?>error<?php }?> <?php if ($_smarty_tpl->getValue('msg')->type == 1) {?>warning<?php }?> <?php if ($_smarty_tpl->getValue('msg')->type == 0) {?>info<?php }?>">
         <?php echo $_smarty_tpl->getValue('msg')->text;?>

@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 5.4.5, created on 2026-01-16 12:31:59
+/* Smarty version 5.4.5, created on 2026-01-17 03:22:53
   from 'file:OrderDetails.tpl' */
 
 /* @var \Smarty\Template $_smarty_tpl */
 if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
   'version' => '5.4.5',
-  'unifunc' => 'content_696a21af2a05a0_46402192',
+  'unifunc' => 'content_696af27d431421_75927674',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'fbe4fd3932f41db89ed129be998397788966e78a' => 
     array (
       0 => 'OrderDetails.tpl',
-      1 => 1768563117,
+      1 => 1768616570,
       2 => 'file',
     ),
   ),
@@ -21,18 +21,18 @@ if ($_smarty_tpl->getCompiled()->isFresh($_smarty_tpl, array (
     'file:messages.tpl' => 1,
   ),
 ))) {
-function content_696a21af2a05a0_46402192 (\Smarty\Template $_smarty_tpl) {
+function content_696af27d431421_75927674 (\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views';
 $_smarty_tpl->getInheritance()->init($_smarty_tpl, true);
 ?>
 
 
 <?php 
-$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_2104218056696a21af291a45_24020678', "content");
+$_smarty_tpl->getInheritance()->instanceBlock($_smarty_tpl, 'Block_475066390696af27d422021_07533504', "content");
 $_smarty_tpl->getInheritance()->endChild($_smarty_tpl, "main.tpl", $_smarty_current_dir);
 }
 /* {block "content"} */
-class Block_2104218056696a21af291a45_24020678 extends \Smarty\Runtime\Block
+class Block_475066390696af27d422021_07533504 extends \Smarty\Runtime\Block
 {
 public function callBlock(\Smarty\Template $_smarty_tpl) {
 $_smarty_current_dir = 'C:\\xampp\\htdocs\\amelia\\app\\views';
@@ -102,7 +102,7 @@ $_smarty_tpl->getSmarty()->getRuntime('Foreach')->restore($_smarty_tpl, 1);?>
 
     <div style="margin-top: 30px; display: flex; gap: 15px;">
         <a href="<?php echo $_smarty_tpl->getValue('conf')->action_url;?>
-orderList" class="pure-button" style="background: #7f8c8d; color: white; text-decoration: none;">
+orderHistory" class="pure-button" style="background: #7f8c8d; color: white; text-decoration: none;">
             ⬅ Powrót do historii
         </a>
         

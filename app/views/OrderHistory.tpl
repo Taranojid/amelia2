@@ -59,4 +59,4 @@
         </a>
     </div>
 </div>
-{/block}
+{/block}a

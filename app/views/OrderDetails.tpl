@@ -50,7 +50,7 @@
     </table>
 
     <div style="margin-top: 30px; display: flex; gap: 15px;">
-        <a href="{$conf->action_url}orderList" class="pure-button" style="background: #7f8c8d; color: white; text-decoration: none;">
+        <a href="{$conf->action_url}orderHistory" class="pure-button" style="background: #7f8c8d; color: white; text-decoration: none;">
             ⬅ Powrót do historii
         </a>
         

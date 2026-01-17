@@ -8,103 +8,106 @@ use core\SessionUtils;
 
 class OrderListCtrl {
 
-    // TWOJA ISTNIEJĄCA AKCJA (Dla Pracownika/Admina)
+    // LISTA ZAMÓWIEŃ (Dla Pracownika/Admina)
     public function action_orderList() {
-    // Proste zapytanie z JOIN
-    $orders = App::getDB()->select("ORDERS", [
-        "[>]USERS" => ["USERS_id_user2" => "id_user"]  // Klucz obcy → klucz główny
-    ], [
-        "ORDERS.ORDERS_ID",
-        "ORDERS.data_zamowienia",
-        "ORDERS.koszt_zamowienia",
-        "ORDERS.adres_dostawy",
-        "ORDERS.status",
-        "USERS.login"
-    ], [
-        "ORDER" => ["ORDERS.data_zamowienia" => "DESC"]
-    ]);
+        $orders = App::getDB()->select("orders", [
+            "[>]users" => ["USERS_id_user2" => "id_user"]
+        ], [
+            "orders.orders_id",
+            "orders.data_zamowienia",
+            "orders.koszt_zamowienia",
+            "orders.adres_dostawy",
+            "orders.status",
+            "users.login"
+        ], [
+            "ORDER" => ["orders.data_zamowienia" => "DESC"]
+        ]);
 
-    App::getSmarty()->assign('orders', $orders);
-    App::getSmarty()->display('OrderList.tpl');
-}
+        $user = SessionUtils::loadObject('user', true);
+        
+        App::getSmarty()->assign('user', $user);
+        App::getSmarty()->assign('orders', $orders);
+        App::getSmarty()->display('OrderList.tpl');
+    }
 
-    // NOWA AKCJA W TYM SAMYM KONTROLERZE (Dla Klienta)
+    // HISTORIA ZAMÓWIEŃ (Dla Klienta)
     public function action_orderHistory() {
-    $user = SessionUtils::loadObject('user', true);
-    
-    if (!$user) {
-        Utils::addErrorMessage("Musisz być zalogowany, aby zobaczyć historię zamówień.");
-        App::getRouter()->redirectTo("login");
-        return;
+        $user = SessionUtils::loadObject('user', true);
+        
+        if (!$user) {
+            Utils::addErrorMessage("Musisz być zalogowany.");
+            App::getRouter()->redirectTo("login");
+            return;
+        }
+        
+        $userId = App::getDB()->get("users", "id_user", ["login" => $user->login]);
+        
+        $orders = App::getDB()->select("orders", "*", [
+            "USERS_id_user2" => $userId,
+            "ORDER" => ["data_zamowienia" => "DESC"]
+        ]);
+
+        App::getSmarty()->assign('user', $user);
+        App::getSmarty()->assign('orders', $orders);
+        App::getSmarty()->display('OrderHistory.tpl'); 
     }
-    
-    // Pobierz ID z bazy na podstawie loginu
-    $userData = App::getDB()->get("USERS", "id_user", ["login" => $user->login]);
-    $userId = $userData ??  null;
-    
-    if (! $userId) {
-        Utils::addErrorMessage("Nie znaleziono użytkownika.");
-        App::getRouter()->redirectTo("login");
-        return;
-    }
 
-    // Pobieramy tylko zamówienia przypisane do tego ID
-    $orders = App::getDB()->select("ORDERS", "*", [
-        "USERS_id_user2" => $userId,
-        "ORDER" => ["data_zamowienia" => "DESC"]
-    ]);
-
-    App::getSmarty()->assign('orders', $orders);
-    App::getSmarty()->display('OrderHistory.tpl'); 
-}
-    
-    // ...  reszta kodu
-
-
+    // SZCZEGÓŁY ZAMÓWIENIA
     public function action_orderDetails() {
-        $orderId = ParamUtils:: getFromRequest('id');
+        $orderId = ParamUtils::getFromRequest('id');
 
         if (!$orderId) {
             Utils::addErrorMessage("Błędny numer zamówienia.");
-            App::getRouter()->redirectTo("orderHistory");
+            App::getRouter()->redirectTo("orderList");
             return;
         }
 
-        // Używamy nazwy: order_items
         $items = App::getDB()->select("order_items", [
-            "[>]PRODUCTS" => ["PRODUCTS_id_product" => "id_product"]
+            "[>]products" => ["PRODUCTS_id_product" => "id_product"]
         ], [
-            "PRODUCTS.nazwa_produktu",
+            "products.nazwa_produktu",
             "order_items.cena_zakupu",
             "order_items.ilosc"
         ], [
             "order_items.ORDERS_ORDERS_ID" => $orderId
         ]);
 
-        $orderInfo = App::getDB()->get("ORDERS", "*", [
-            "ORDERS_ID" => $orderId
+        $orderInfo = App::getDB()->get("orders", "*", [
+            "orders_id" => $orderId // Poprawione z "id" na "orders_id"
         ]);
 
+        $user = SessionUtils::loadObject('user', true);
+
+        App::getSmarty()->assign('user', $user);
         App::getSmarty()->assign('items', $items);
         App::getSmarty()->assign('orderInfo', $orderInfo);
         App::getSmarty()->display('OrderDetails.tpl');
     }
 
-    // TWOJA ISTNIEJĄCA AKCJA WYSYŁKI
+    // OZNACZ JAKO WYSŁANE
     public function action_orderShip() {
-        $user = SessionUtils::loadObject('user', true);
-        $userId = ($user) ? $user->id_user :  null;
-
+        // 1. Pobierz ID zamówienia z żądania
         $id = ParamUtils::getFromRequest('id');
-        if (isset($id) && is_numeric($id) && $id > 0) {
-            App::getDB()->update("ORDERS", [
+        
+        // 2. Pobierz ID zalogowanego użytkownika (pracownika)
+        $user = SessionUtils::loadObject('user', true);
+        $userId = App::getDB()->get("users", "id_user", ["login" => $user->login]);
+
+        if (isset($id) && is_numeric($id)) {
+            App::getDB()->update("orders", [
+                "ORDER_STATUS_id_status" => 2,
                 "status" => "wysłane",
-                "modyfikowane_przez" => $userId  // ← Zmienione z ; na ,
+                "modyfikowane_przez" => $userId,
+                "kiedy_modifikowane" => date("Y-m-d H:i:s")
             ], [
-                "ORDERS_ID" => $id
+                "orders_id" => $id // Klucz główny to orders_id
             ]);
-            Utils::addInfoMessage("Zamówienie nr $id wysłane.");  // ← Zmienione z App::getMessages()->addInfo
+            
+            Utils::addInfoMessage("Zamówienie nr $id oznaczone jako wysłane.");
+        } else {
+            Utils::addErrorMessage("Niepoprawne ID zamówienia.");
         }
-        App::getRouter()->redirectTo("orderList");  // ← Zmienione z header() na redirectTo()
+        
+        App::getRouter()->redirectTo("orderList");
     }
 }

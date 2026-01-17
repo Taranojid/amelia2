@@ -5,101 +5,188 @@ use core\App;
 use core\Utils;
 use core\ParamUtils;
 use core\SessionUtils;
+use core\RoleUtils;
 
 class ProductEditCtrl {
-    private $form = [];
-
-    // Wyświetlenie pustego formularza
-    public function action_productNew() {
-        $categories = App:: getDB()->select("CATEGORIES", ["id_category", "nazwa_kategori"]);
-        App::getSmarty()->assign('categories', $categories);
-        App::getSmarty()->assign('form', (object) $this->form);  // ← DODAJ TO
-        App::getSmarty()->display('ProductEdit.tpl');  // ← DODAJ TO
+    
+    // Wspólna metoda sprawdzania uprawnień (Pracownik lub Admin)
+    private function checkPermissions() {
+        if (!RoleUtils::inRole('pracownik') && !RoleUtils::inRole('admin')) {
+            Utils::addErrorMessage('Brak uprawnień do tej operacji!');
+            App::getRouter()->redirectTo('productList');
+            exit;
+        }
     }
 
-    // Wczytanie danych istniejącego produktu do edycji
-    public function action_productEdit() {
-        // 1. Pobierz ID produktu z URL
-        $id = ParamUtils::getFromRequest('id');
-
-        if (! $id) {
-            Utils::addErrorMessage("Nie podano ID produktu.");
-            App::getRouter()->redirectTo("productList");
-            return;
+    // Pomocnicza metoda do pobrania ID aktualnie zalogowanego użytkownika z bazy
+    private function getLoggedInUserId() {
+        $user = SessionUtils::loadObject('user', true);
+        if ($user && isset($user->login)) {
+            return App::getDB()->get("users", "id_user", ["login" => $user->login]);
         }
+        return null;
+    }
 
-        // 2. Pobierz dane tego produktu z bazy
-        $this->form = App::getDB()->get("PRODUCTS", "*", ["id_product" => $id]);
-
-        if (!$this->form) {
-            Utils::addErrorMessage("Nie znaleziono produktu o ID: $id");
-            App::getRouter()->redirectTo("productList");
-            return;
-        }
-
-        // 3. Pobierz kategorie
+    // Wspólna metoda wyświetlania formularza
+    private function showForm($product = null) {
+        $user = SessionUtils::loadObject('user', true);
         $categories = App::getDB()->select("CATEGORIES", ["id_category", "nazwa_kategori"]);
         
+        App::getSmarty()->assign('user', $user);
         App::getSmarty()->assign('categories', $categories);
-        App::getSmarty()->assign('form', (object) $this->form);  // ← WAŻNE! Rzutowanie na obiekt
-        App::getSmarty()->display('ProductEdit.tpl');  // ← DODAJ TO
+        
+        // Jeśli dodajemy nowy, tworzymy pusty obiekt dla Smarty
+        App::getSmarty()->assign('product', (object) ($product ?? [
+            'id_product' => null, 
+            'nazwa_produktu' => '', 
+            'CATEGORIES_id_category' => '', 
+            'cena' => '', 
+            'opis' => '', 
+            'zdj_sciezka' => null
+        ]));
+        
+        App::getSmarty()->display('ProductEdit.tpl');
+    }
+
+    public function action_productNew() {
+        $this->checkPermissions();
+        $this->showForm();
+    }
+
+    public function action_productEdit() {
+        $this->checkPermissions();
+        $id = ParamUtils::getFromRequest('id');
+        
+        if (!$id || !($product = App::getDB()->get("PRODUCTS", "*", ["id_product" => $id]))) {
+            Utils::addErrorMessage("Nie znaleziono wybranego produktu.");
+            App::getRouter()->redirectTo("productList");
+            return;
+        }
+        
+        $this->showForm($product);
     }
 
     public function action_productSave() {
-        // 1. Pobierz dane
-        $id = ParamUtils::getFromRequest('id_product');
-        $this->form['nazwa'] = ParamUtils::getFromRequest('nazwa_produktu');
-        $this->form['cena'] = ParamUtils::getFromRequest('cena');
-        $this->form['opis'] = ParamUtils::getFromRequest('opis');
-        $this->form['id_kat'] = ParamUtils::getFromRequest('id_kategorii');
+        $this->checkPermissions();
         
-        // Pobierz userId z sesji Amelii
-        $user = SessionUtils::loadObject('user', true);
-        $userId = ($user) ? $user->id_user : null;
+        // Pobranie danych z formularza
+        $id = ParamUtils::getFromRequest('id_product');
+        $nazwa = trim(ParamUtils::getFromRequest('nazwa_produktu'));
+        $cena = ParamUtils::getFromRequest('cena');
+        $opis = trim(ParamUtils::getFromRequest('opis'));
+        $kategoria = ParamUtils::getFromRequest('kategoria_id');
+        
+        // Pobranie ID zalogowanego użytkownika
+        $userId = $this->getLoggedInUserId();
 
-        $data = [
-            "CATEGORIES_id_category" => $this->form['id_kat'],
-            "nazwa_produktu" => $this->form['nazwa'],
-            "cena" => $this->form['cena'],
-            "opis" => $this->form['opis'],
-            "modyfikowane_przez" => $userId,
-            "kiedy_modyfikowane" => date("Y-m-d H: i:s")
-        ];
+        // --- WALIDACJA ---
+        $errors = [];
+        if (empty($nazwa)) $errors[] = 'Nazwa produktu jest wymagana!';
+        if (empty($kategoria)) $errors[] = 'Wybierz kategorię!';
+        if (empty($cena) || !is_numeric($cena) || $cena <= 0) $errors[] = 'Cena musi być liczbą większą od zera!';
 
-        // 2. Wybór: UPDATE czy INSERT
-        if (empty($id)) {
-            // Nowy produkt
-            $data["czy_aktywny"] = 1;
-            $data["utworzone_przez"] = $userId;
-            App::getDB()->insert("PRODUCTS", $data);
-            Utils::addInfoMessage('Dodano nowy produkt');
-        } else {
-            // Edycja istniejącego
-            App::getDB()->update("PRODUCTS", $data, ["id_product" => $id]);
-            Utils::addInfoMessage('Zaktualizowano produkt');
+        if (!empty($errors)) {
+            foreach ($errors as $error) Utils::addErrorMessage($error);
+            // Powrót do edycji lub nowego w zależności od kontekstu
+            if ($id) {
+                App::getRouter()->redirectTo("productEdit&id=$id");
+            } else {
+                App::getRouter()->redirectTo("productNew");
+            }
+            return;
         }
 
-        App::getRouter()->redirectTo("productList");
+        // --- ZAPIS DO BAZY ---
+        try {
+            $data = [
+                "nazwa_produktu" => $nazwa,
+                "CATEGORIES_id_category" => $kategoria,
+                "cena" => $cena,
+                "opis" => $opis,
+                "modyfikowane_przez" => $userId,
+                "kiedy_modyfikowane" => date("Y-m-d H:i:s")
+            ];
+
+            // Obsługa przesyłania zdjęcia (jeśli wybrano plik)
+            if (isset($_FILES['zdjecie']) && $_FILES['zdjecie']['error'] == 0) {
+                $fileName = $this->uploadImage($_FILES['zdjecie']);
+                if ($fileName) {
+                    $data["zdj_sciezka"] = $fileName;
+                }
+            }
+
+            if ($id) {
+                // TRYB EDYCJI
+                App::getDB()->update("PRODUCTS", $data, ["id_product" => $id]);
+                Utils::addInfoMessage("Zmiany w produkcie zostały zapisane.");
+            } else {
+                // TRYB DODAWANIA
+                $data["utworzone_przez"] = $userId;
+                $data["czy_aktywny"] = 1;
+                
+                App::getDB()->insert("PRODUCTS", $data);
+                Utils::addInfoMessage("Pomyślnie dodano nowe mydło do katalogu.");
+            }
+
+            App::getRouter()->redirectTo("productList");
+
+        } catch (\Exception $e) {
+            Utils::addErrorMessage("Błąd podczas zapisu do bazy danych: " . $e->getMessage());
+            $this->showForm();
+        }
     }
 
     public function action_productDelete() {
+        $this->checkPermissions();
         $id = ParamUtils::getFromRequest('id');
+        $userId = $this->getLoggedInUserId();
         
-        // Pobierz userId z sesji Amelii
-        $user = SessionUtils::loadObject('user', true);
-        $userId = ($user) ? $user->id_user : null;
-
-        if (isset($id)) {
+        if ($id) {
+            // "Miękkie" usuwanie - zmiana statusu aktywności
             App::getDB()->update("PRODUCTS", [
                 "czy_aktywny" => 0,
                 "modyfikowane_przez" => $userId,
-                "kiedy_modyfikowane" => date("Y-m-d H: i:s")
-            ], [
-                "id_product" => $id
-            ]);
-            Utils::addInfoMessage("Produkt został usunięty (dezaktywowany).");
+                "kiedy_modyfikowane" => date("Y-m-d H:i:s")
+            ], ["id_product" => $id]);
+            
+            Utils::addInfoMessage("Produkt został wycofany ze sprzedaży (ukryty).");
         }
-
+        
         App::getRouter()->redirectTo("productList");
+    }
+
+    // Upload zdjęcia
+    private function uploadImage($file) {
+        // Ścieżka fizyczna do zapisu
+        $dir = $_SERVER['DOCUMENT_ROOT'] . '/amelia/public/uploads/products/';
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        
+        // Walidacja rozmiaru (5MB)
+        if ($file['size'] > 5 * 1024 * 1024) {
+            Utils::addErrorMessage('Plik zdjęcia jest za duży (max 5MB)!');
+            return false;
+        }
+        
+        // Walidacja typu MIME
+        $allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        if (!in_array($mime, $allowed)) {
+            Utils::addErrorMessage('Niedozwolony format pliku (tylko JPG, PNG, WEBP)!');
+            return false;
+        }
+        
+        // Generowanie unikalnej nazwy pliku
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $name = 'product_' . uniqid() . '.' . $extension;
+        
+        if (move_uploaded_file($file['tmp_name'], $dir . $name)) {
+            return $name;
+        }
+        
+        Utils::addErrorMessage('Wystąpił nieoczekiwany błąd podczas zapisywania pliku na serwerze.');
+        return false;
     }
 }

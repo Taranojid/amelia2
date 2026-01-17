@@ -1,67 +1,85 @@
 {extends file="main.tpl"}
 
 {block name="content"}
-<div style="width:95%; margin: 2em auto;">
-
-    <h1>📦 Panel obsługi zamówień</h1>
+<style>
+    .order-container { width: 95%; margin: 2em auto; font-family: 'Segoe UI', sans-serif; }
+    .status-badge { 
+        padding: 5px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold; text-transform: uppercase; 
+    }
+    .status-nowe { background: #fff9c4; color: #f57f17; border: 1px solid #fbc02d; }
+    .status-wyslane { background: #e8f5e9; color: #2e7d32; border: 1px solid #4caf50; }
     
-    {* Poprawiona ścieżka do komunikatów zgodnie ze standardem Amelii *}
+    .order-table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .order-table th { background: #34495e; color: white; padding: 12px; text-align: left; }
+    .order-table td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    .order-table tr:hover { background: #f8f9fa; }
+    
+    .btn-action { padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.85em; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-ship { background: #2980b9; color: white; transition: 0.3s; }
+    .btn-ship:hover { background: #3498db; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+</style>
+
+<div class="order-container">
+    <h1 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+        📦 Panel obsługi zamówień
+    </h1>
+    
     {include file="messages.tpl"}
 
-    <nav style="margin-bottom: 20px;">
-        <a href="{$conf->action_url}productList" class="pure-button">← Powrót do katalogu mydeł</a>
-    </nav>
+    <div style="margin-bottom: 20px;">
+        <a href="{$conf->action_url}productList" class="pure-button" style="border-radius: 4px;">← Powrót do katalogu</a>
+    </div>
 
-    <table class="pure-table pure-table-bordered" style="width: 100%;">
+    <table class="order-table">
         <thead>
-            <tr style="background: #f2f2f2;">
+            <tr>
                 <th>ID</th>
                 <th>Klient</th>
-                <th>Data złożenia</th>
+                <th>Data</th>
                 <th>Suma</th>
                 <th>Adres dostawy</th>
                 <th>Status</th>
-                <th>Akcje</th>
+                <th style="text-align: right;">Akcje</th>
             </tr>
         </thead>
         <tbody>
             {foreach $orders as $o}
             <tr>
-                {* Użycie operatora default dla bezpieczeństwa kluczy ID *}
-                <td><b>#{$o['id_order']|default:$o['ORDERS_ID']}</b></td>
-                <td>{$o['login']}</td>
-                <td>{$o['data_zamowienia']}</td>
-                <td>{$o['koszt_zamowienia']} zł</td>
-                <td>{$o['adres_dostawy']}</td>
+                {* KLUCZ: Używamy orders_id bo tak zadeklarowałeś w kontrolerze w action_orderList *}
+                <td><strong style="color: #7f8c8d;">#{$o['orders_id']}</strong></td>
+                <td><i class="fa fa-user"></i> {$o['login']}</td>
+                <td style="font-size: 0.9em; color: #34495e;">{$o['data_zamowienia']}</td>
+                <td style="font-weight: bold; color: #2c3e50;">{$o['koszt_zamowienia']} zł</td>
+                <td style="max-width: 200px; font-size: 0.85em; color: #636e72;">{$o['adres_dostawy']}</td>
                 <td>
-                    {* Dynamiczne stylowanie statusu *}
-                    <span style="padding: 4px 8px; border-radius: 4px; color: #333; font-weight: bold; background: {if $o['status']=='nowe'}#ffeb3b{else}#c8e6c9{/if};">
-                        {$o['status']}
-                    </span>
+                    {if $o['status'] == 'nowe'}
+                        <span class="status-badge status-nowe">Nowe</span>
+                    {else}
+                        <span class="status-badge status-wyslane">Wysłane</span>
+                    {/if}
                 </td>
-                <td>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                        <a href="{$conf->action_url}orderDetails&id={$o['id_order']|default:$o['ORDERS_ID']}" 
-                           class="pure-button" style="font-size: 0.9em;">
-                           🔍 Podgląd
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="{$conf->action_url}orderDetails&id={$o['orders_id']}" 
+                           class="btn-action" style="background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7;">
+                           🔍 Szczegóły
                         </a>
 
                         {if $o['status'] == 'nowe'}
-                            <a href="{$conf->action_url}orderShip&id={$o['id_order']|default:$o['ORDERS_ID']}" 
-                               class="pure-button" 
-                               style="background: #2196f3; color: white; font-size: 0.9em;"
-                               onclick="return confirm('Czy na pewno oznaczyć zamówienie jako wysłane?')">
-                               ✅ Wyślij
+                            <a href="{$conf->action_url}orderShip&id={$o['orders_id']}" 
+                               class="btn-action btn-ship" 
+                               onclick="return confirm('Czy na pewno oznaczyć zamówienie #{$o['orders_id']} jako wysłane?')">
+                               🚚 Wyślij
                             </a>
-                        {else}
-                            <span style="color: gray; font-size: 0.8em; align-self: center;">Brak akcji</span>
                         {/if}
                     </div>
                 </td>
             </tr>
             {foreachelse}
             <tr>
-                <td colspan="7" style="text-align: center; padding: 2em;">Brak zamówień do wyświetlenia.</td>
+                <td colspan="7" style="text-align: center; padding: 50px; color: #bdc3c7;">
+                    <p style="font-size: 1.2em;">Brak zamówień w systemie.</p>
+                </td>
             </tr>
             {/foreach}
         </tbody>

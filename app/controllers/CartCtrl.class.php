@@ -13,15 +13,17 @@ class CartCtrl {
         $id = ParamUtils::getFromRequest('id');
 
         if (empty($id) || !is_numeric($id) || $id <= 0) {
-            Utils::addErrorMessage('Nieprawidłowy ID produktu');
+            Utils:: addErrorMessage('Nieprawidłowy ID produktu');
             App::getRouter()->redirectTo("productList");
+            return;
         }
 
         // 2. Sprawdzenie czy produkt istnieje
-        $product = App::getDB()->get("PRODUCTS", "id_product", ["id_product" => $id]);
+        $product = App::getDB()->get("products", "id_product", ["id_product" => $id]);
         if (!$product) {
             Utils::addErrorMessage('Produkt nie istnieje');
             App::getRouter()->redirectTo("productList");
+            return;
         }
 
         // 3. Zarządzanie koszykiem przez sesję Amelii
@@ -30,34 +32,41 @@ class CartCtrl {
 
         if (!isset($cart[$id])) {
             $cart[$id] = 1;
-            Utils::addInfoMessage('Mydło dodane do koszyka!');
+            Utils:: addInfoMessage('Mydło dodane do koszyka!');
         } else {
             $cart[$id]++;
-            Utils::addInfoMessage('Zwiększono ilość w koszyku.');
+            Utils:: addInfoMessage('Zwiększono ilość w koszyku.');
         }
 
         SessionUtils::storeObject('cart', $cart);
 
         // 4. Przekierowanie z powrotem do listy produktów
-        App::getRouter()->redirectTo("productList");  // ← ZMIENIONE
+        App::getRouter()->redirectTo("productList");
     }
 
     public function action_orderSave() {
         $adres = ParamUtils:: getFromRequest('adres');
         $cart = SessionUtils::loadObject('cart', true);
         
-        // Pobieramy usera z sesji Amelii
+        // ✅ Pobierz użytkownika z sesji
         $user = SessionUtils::loadObject('user', true);
-        $userId = ($user) ? $user->id_user : null; 
+        
+        // ✅ Pobierz ID użytkownika z bazy na podstawie loginu
+        $userId = null;
+        if ($user && isset($user->login)) {
+            $userId = App::getDB()->get("users", "id_user", ["login" => $user->login]);
+        }
 
         if (empty($userId)) {
             Utils::addErrorMessage("Musisz być zalogowany, aby złożyć zamówienie.");
             App::getRouter()->redirectTo("login");
+            return;
         }
 
         if (empty($cart)) {
-            Utils:: addErrorMessage("Twój koszyk jest pusty!");
+            Utils::addErrorMessage("Twój koszyk jest pusty!");
             App::getRouter()->redirectTo("productList");
+            return;
         }
 
         if (empty($adres)) {
@@ -68,41 +77,45 @@ class CartCtrl {
 
         try {
             $ids = array_keys($cart);
-            $products = App::getDB()->select("PRODUCTS", ["id_product", "cena"], ["id_product" => $ids]);
+            $products = App:: getDB()->select("products", ["id_product", "cena"], ["id_product" => $ids]);
             
             $total = 0;
             foreach ($products as $p) {
                 $total += $p['cena'] * $cart[$p['id_product']];
             }
 
-            // Transakcja w bazie danych
-            App::getDB()->insert("ORDERS", [
-                "USERS_id_user2" => $userId,
-                "data_zamowienia" => date("Y-m-d H:i:s"),
-                "koszt_zamowienia" => $total,
-                "adres_dostawy" => $adres,
-                "status" => "nowe"
-            ]);
+            // ✅ Wstaw zamówienie do orders
+App::getDB()->insert("orders", [
+    "USERS_id_user2" => $userId,
+    "ORDER_STATUS_id_status" => 1, // Status "Nowe"
+    "data_zamowienia" => date("Y-m-d H:i: s"),
+    "koszt_zamowienia" => $total,
+    "adres_dostawy" => $adres,
+    "modyfikowane_przez" => $userId,                    // ← DODANE
+    "kiedy_modifikowane" => date("Y-m-d H: i:s"),        // ← DODANE
+    "status" => "nowe"
+]);
 
             $orderId = App::getDB()->id();
 
+            // ✅ Wstaw pozycje zamówienia do order_items
             foreach ($products as $p) {
-    App::getDB()->insert("ORDER_ITEMS", [
-        "ORDERS_ORDERS_ID" => $orderId,
-        "PRODUCTS_id_product" => $p['id_product'],  // ← Zmień ] na ,
-        "ilosc" => $cart[$p['id_product']],
-        "cena_zakupu" => $p['cena']
-    ]);
-}
+                App::getDB()->insert("order_items", [
+                    "ORDERS_ORDERS_ID" => $orderId,
+                    "PRODUCTS_id_product" => $p['id_product'],
+                    "ilosc" => $cart[$p['id_product']],
+                    "cena_zakupu" => $p['cena']
+                ]);
+            }
 
             // Czyścimy koszyk
             SessionUtils::remove('cart');
             
-            Utils::addInfoMessage("Dziękujemy!  Zamówienie nr $orderId zostało złożone.");
-            App::getRouter()->redirectTo("orderHistory");
+            Utils::addInfoMessage("Dziękujemy!  Zamówienie nr <strong>$orderId</strong> zostało złożone.");
+            App::getRouter()->redirectTo("productList");
 
         } catch (\Exception $e) {
-            Utils::addErrorMessage("Błąd zapisu: " . $e->getMessage());
+            Utils:: addErrorMessage("Błąd zapisu: " . $e->getMessage());
             $this->action_cartView();
         }
     }
@@ -115,7 +128,7 @@ class CartCtrl {
 
         if (! empty($cart)) {
             $ids = array_keys($cart);
-            $products = App::getDB()->select("PRODUCTS", "*", ["id_product" => $ids]);
+            $products = App::getDB()->select("products", "*", ["id_product" => $ids]);
 
             foreach ($products as &$p) {
                 $p['quantity'] = $cart[$p['id_product']];
